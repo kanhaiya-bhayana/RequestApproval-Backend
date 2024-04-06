@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://Sasageyo\SQLEXPRESS;databaseName=RequestApprovalDB;integratedSecurity=true;trustServerCertificate=true;
+    username: sa
+    password: Asdfghjkl#1
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+
+#logging:
+#  level:
+#    root: warn
+#    org.hibernate.SQL: debug
+#    org.hibernate.orm.jdbc.bind: trace
+
+
+
+
+#spring:
+#  datasource:
+#    driverClassName: com.microsoft.sqlserver.jdbc.SQLServerDriver
+#    url: jdbc:sqlserver://Sasageyo\SQLEXPRESS;databaseName=RequestApprovalDB;integratedSecurity=true;trustServerCertificate=true;
+#    username: sa
+#    password: Asdfghjkl#1
+#  jpa:
+#    hibernate:
+#      dd
