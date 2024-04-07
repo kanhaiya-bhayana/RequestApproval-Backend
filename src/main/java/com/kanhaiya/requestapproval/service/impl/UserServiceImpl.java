@@ -2,6 +2,8 @@ package com.kanhaiya.requestapproval.service.impl;
 
 import com.kanhaiya.requestapproval.dto.UserDto;
 import com.kanhaiya.requestapproval.entity.UserInfo;
+import com.kanhaiya.requestapproval.exceptions.ResourceNotFoundException;
+import com.kanhaiya.requestapproval.exceptions.UserAlreadyExistsException;
 import com.kanhaiya.requestapproval.mapper.UserMapper;
 import com.kanhaiya.requestapproval.repository.UserRepository;
 import com.kanhaiya.requestapproval.service.IUserService;
@@ -27,6 +29,11 @@ public class UserServiceImpl implements IUserService {
         _userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
+
+    /**
+     *
+     * @param userDto - userDto Object
+     */
     @Override
     @Transactional
     public void createUser(UserDto userDto) {
@@ -35,7 +42,7 @@ public class UserServiceImpl implements IUserService {
         if (user.getId() != null){
             Optional<UserInfo> optionalUer = _userRepository.findById(user.getId());
             if (optionalUer.isPresent()){
-                throw new RuntimeException("Already exist");
+                throw new UserAlreadyExistsException("User Already Exist");
             }
         }
         user.setId(generateNewId(user.getUserName()));
@@ -43,19 +50,34 @@ public class UserServiceImpl implements IUserService {
         _userRepository.save(user);
     }
 
+    /**
+     *
+     * @return - List that contains all users
+     */
     @Override
     public List<UserInfo> getAllUsers() {
         return new ArrayList<>(_userRepository.findAll());
     }
 
+
+    /**
+     *
+     * @param id - String user id
+     * @return - UserDto - Object
+     */
     @Override
     public UserDto getUserById(String id) {
         UserInfo user = _userRepository.findById(id).orElseThrow(
-                () -> new RuntimeException("User not found")
+                () -> new ResourceNotFoundException("user", "userid", id)
         );
         return userMapper.mapToUserDto(user);
     }
 
+    /**
+     *
+     * @param id - String used id
+     * @return - boolean
+     */
     @Override
     @Transactional
     public boolean deleteUserById(String id) {
@@ -64,11 +86,16 @@ public class UserServiceImpl implements IUserService {
         return true;
     }
 
+    /**
+     *
+     * @param userDto - userDto Object
+     * @return - boolean
+     */
     @Override
     @Transactional
     public boolean updateUser(UserDto userDto) {
         UserInfo user = _userRepository.findById(userDto.getId()).orElseThrow(
-                ()-> new RuntimeException("User not found")
+                ()-> new ResourceNotFoundException("user", "userid", userDto.getId())
         );
         try {
             user = userMapper.mapToUser(userDto, user);
@@ -80,17 +107,27 @@ public class UserServiceImpl implements IUserService {
         return true;
     }
 
+    /**
+     *
+     * @param userName - String username
+     * @return - generate a User id with the combination of userName and numbers
+     */
     private String generateNewId(String userName){
-        String prefix = "U";
-        StringBuilder userId = new StringBuilder(prefix);
-        String chars = userName.toUpperCase().trim().replaceAll("\\s+","");
-        Random rand = new Random();
-        String numbers = "0123456789";
-        for (int i = 0; i < 4; i++) {
-            int index = rand.nextInt(chars.length());
-            userId.append(chars.charAt(index));
-            userId.append(numbers.charAt(index));
+        try{
+            String prefix = "U";
+            StringBuilder userId = new StringBuilder(prefix);
+            String chars = userName.toUpperCase().trim().replaceAll("\\s+","");
+            Random rand = new Random();
+            String numbers = "0123456789";
+            for (int i = 0; i < 4; i++) {
+                int index = rand.nextInt(chars.length());
+                userId.append(chars.charAt(index));
+                userId.append(numbers.charAt(index));
+            }
+            return userId.toString();
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        return userId.toString();
+        return "Error occurred while creating user";
     }
 }
